@@ -21,6 +21,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -43,12 +44,13 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
     private static final String COARSE_LOCATION = Manifest.permission.ACCESS_COARSE_LOCATION;
     private boolean locationPermissionsGranted = false;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 100;
-    private static final float DEFAULT_ZOOM = 12f;
+    private static final float DEFAULT_ZOOM = 11f;
     private FusedLocationProviderClient fusedLocationProviderClient;
     private HashMap<String,Integer> cityIndex;
     private Integer currentCityIndex;
     private String citySelectedInDropdown;
     private Location currentDeviceCityLocation;
+    private boolean moveToMyLocation = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +77,7 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
             public void onClick(View view) {
                 if(currentCityIndex!=null)
                 {
+                    moveToMyLocation = true;
                     moveCamera(new LatLng(currentDeviceCityLocation.getLatitude(),currentDeviceCityLocation.getLongitude()),DEFAULT_ZOOM);
                     Spinner citySpinner = findViewById(R.id.scity);
                     citySpinner.setSelection(currentCityIndex);
@@ -138,6 +141,7 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
             mMap.setMyLocationEnabled(true);
             mMap.getUiSettings().setMyLocationButtonEnabled(false);
         }
+        dummyMarker();
     }
 
     private void getDeviceLocation()
@@ -154,7 +158,6 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
                     {
                         Location currentLocation = (Location) task.getResult();
                         currentDeviceCityLocation = currentLocation;
-                        moveCamera(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), DEFAULT_ZOOM);
                         getCityFromLocation(currentLocation.getLatitude(), currentLocation.getLongitude());
                     }
                 }
@@ -180,16 +183,15 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
         citySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                if(i>0 && currentCityIndex!=null)
+                if(moveToMyLocation)
                 {
-                    if(i==currentCityIndex)
-                    {
-                        moveCamera(new LatLng(currentDeviceCityLocation.getLatitude(),currentDeviceCityLocation.getLongitude()),DEFAULT_ZOOM);
-                    }
-                    else
-                    {
-                        moveCameraToSelectedCity(cities.get(i));
-                    }
+                    citySelectedInDropdown = cities.get(i);
+                    Toast.makeText(AdMap.this, cities.get(i), Toast.LENGTH_SHORT).show();
+                    moveToMyLocation = false;
+                }
+                else if(i>0 && currentCityIndex!=null)
+                {
+                    moveCameraToSelectedCity(cities.get(i));
                     citySelectedInDropdown = cities.get(i);
                     Toast.makeText(AdMap.this, cities.get(i), Toast.LENGTH_SHORT).show();
                 }
@@ -224,6 +226,27 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
             Spinner citySpinner = findViewById(R.id.scity);
             currentCityIndex = cityIndex.get(cityName);
             citySpinner.setSelection(cityIndex.get(cityName));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void dummyMarker()
+    {
+        Geocoder geocoder = new Geocoder(AdMap.this, Locale.getDefault());
+        try {
+            List<Address> addressList = geocoder.getFromLocationName("Bengaluru",1);
+            Address address =  addressList.get(0);
+            LatLng addressLatLng = new LatLng(address.getLatitude(),address.getLongitude());
+            Marker marker = mMap.addMarker(new MarkerOptions().position(addressLatLng));
+            mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+                @Override
+                public boolean onMarkerClick(Marker marker) {
+                    Intent intent = new Intent(AdMap.this, ScreenInformation.class);
+                    startActivity(intent);
+                    return false;
+                }
+            });
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -18,7 +18,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".ScreenLocationAdUpload"></activity>
+        <activity android:name=".ScreenInformation"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.Light.Dialog.Alert"/>
+        <activity android:name=".ScreenLocationAdUpload"
+            android:screenOrientation="portrait"/>
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").
