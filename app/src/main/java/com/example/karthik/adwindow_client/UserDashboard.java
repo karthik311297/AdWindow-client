@@ -4,8 +4,11 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
@@ -13,7 +16,7 @@ import android.widget.ImageButton;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
-public class UserDashboard extends AppCompatActivity {
+public class UserDashboard extends AppCompatActivity implements PaymentHistory.OnFragmentInteractionListener,ContentOngoing.OnFragmentInteractionListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +33,21 @@ public class UserDashboard extends AppCompatActivity {
                     Intent intent = new Intent(UserDashboard.this, AdMap.class);
                     startActivity(intent);
                 }
+                else if(menuItem.getItemId() == R.id.mpay)
+                {
+                    Fragment fragment = new PaymentHistory();
+                    FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+                    fragmentTransaction.replace(R.id.dashboardFrame, fragment);
+                    fragmentTransaction.commit();
+                }
+                else
+                {
+                    Fragment fragment = new ContentOngoing();
+                    FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+                    fragmentTransaction.replace(R.id.dashboardFrame, fragment);
+                    fragmentTransaction.commit();
+                }
+
                 return true;
             }
         });
@@ -42,5 +60,17 @@ public class UserDashboard extends AppCompatActivity {
                 drawerLayout.openDrawer(GravityCompat.START);
             }
         });
+    }
+
+    @Override
+    protected void onResume() {
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setSelectedItemId(R.id.mContent);
+        super.onResume();
+    }
+
+    @Override
+    public void onFragmentInteraction(Uri uri) {
+
     }
 }

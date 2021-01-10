@@ -10,10 +10,13 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.abdeveloper.library.MultiSelectDialog;
+import com.abdeveloper.library.MultiSelectModel;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -27,6 +30,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -51,7 +55,9 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
     private String citySelectedInDropdown;
     private Location currentDeviceCityLocation;
     private boolean moveToMyLocation = false;
-
+    HashMap<String,String> selectedLocationAddressMapper;
+    ArrayList<MultiSelectModel> screenLocationTitles;
+    ArrayList<String> locationsToUploadAd;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,6 +67,7 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
         getLocationPermission();
         ImageButton currentLocationButton = findViewById(R.id.myLoc);
         ImageButton uploadAdButton = findViewById(R.id.uploadAd);
+        Button screensDialogOpener =  findViewById(R.id.screensDialogOpener);
         uploadAdButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -68,6 +75,10 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
                 {
                     Intent intent = new Intent(AdMap.this, ScreenLocationAdUpload.class);
                     intent.putExtra("CITY", citySelectedInDropdown);
+                    if(locationsToUploadAd!=null)
+                    {
+                        intent.putStringArrayListExtra("LOCS",locationsToUploadAd);
+                    }
                     startActivity(intent);
                 }
             }
@@ -84,6 +95,35 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
                 }
             }
         });
+        screensDialogOpener.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(citySelectedInDropdown!=null)
+                {
+                    populateScreensDialog();
+                    MultiSelectDialog multiSelectDialog = new MultiSelectDialog()
+                            .title("Choose Screens")
+                            .titleSize(25)
+                            .positiveText("Ok")
+                            .negativeText("Cancel")
+                            .multiSelectList(screenLocationTitles)
+                            .onSubmit(new MultiSelectDialog.SubmitCallbackListener() {
+                                @Override
+                                public void onSelected(ArrayList<Integer> selectedIds, ArrayList<String> selectedNames, String s) {
+                                    mMap.clear();
+                                    addMapMarkerForScreenLocationsInCity(selectedNames);
+                                    locationsToUploadAd = selectedNames;
+                                }
+                                @Override
+                                public void onCancel() {
+                                    Toast.makeText(AdMap.this,"Cancelled",Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                    multiSelectDialog.show(getSupportFragmentManager(),"multiSelectDialog");
+                }
+            }
+        });
+
     }
 
     private void initMap()
@@ -141,7 +181,6 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
             mMap.setMyLocationEnabled(true);
             mMap.getUiSettings().setMyLocationButtonEnabled(false);
         }
-        dummyMarker();
     }
 
     private void getDeviceLocation()
@@ -231,34 +270,13 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
         }
     }
 
-    public void dummyMarker()
+    public void addMapMarkerForScreenLocationsInCity(List<String> screenLocationTitles)
     {
         Geocoder geocoder = new Geocoder(AdMap.this, Locale.getDefault());
-        try {
-            List<Address> addressList = geocoder.getFromLocationName("Bengaluru",1);
-            Address address =  addressList.get(0);
-            LatLng addressLatLng = new LatLng(address.getLatitude(),address.getLongitude());
-            Marker marker = mMap.addMarker(new MarkerOptions().position(addressLatLng));
-            mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-                @Override
-                public boolean onMarkerClick(Marker marker) {
-                    Intent intent = new Intent(AdMap.this, ScreenInformation.class);
-                    startActivity(intent);
-                    return false;
-                }
-            });
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void addMapMarkerForScreenLocationsInCity(List<String> screenAddresses)
-    {
-        Geocoder geocoder = new Geocoder(AdMap.this, Locale.getDefault());
-        for(String screenAddress:screenAddresses)
+        for(String screenTitle:screenLocationTitles)
         {
             try {
-                List<Address> addressList = geocoder.getFromLocationName(screenAddress,1);
+                List<Address> addressList = geocoder.getFromLocationName(selectedLocationAddressMapper.get(screenTitle),1);
                 Address address =  addressList.get(0);
                 LatLng addressLatLng = new LatLng(address.getLatitude(),address.getLongitude());
                 mMap.addMarker(new MarkerOptions().position(addressLatLng));
@@ -266,5 +284,28 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
                 e.printStackTrace();
             }
         }
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                Intent intent = new Intent(AdMap.this, ScreenInformation.class);
+                startActivity(intent);
+                return false;
+            }
+        });
+
+    }
+
+    public void populateScreensDialog()
+    {
+        screenLocationTitles = new ArrayList<>();
+        selectedLocationAddressMapper = new HashMap<>();
+        screenLocationTitles.add(new MultiSelectModel(1,"MSRIT College"));
+        selectedLocationAddressMapper.put("MSRIT College", "MSRIT Post, M S Ramaiah Nagar,MSR Nagar, Bengaluru, Karnataka 560054");
+        screenLocationTitles.add(new MultiSelectModel(2,"RV College"));
+        selectedLocationAddressMapper.put("RV College", "Mysore Rd, RV Vidyaniketan, Post, Bengaluru, Karnataka 560059");
+        screenLocationTitles.add(new MultiSelectModel(3,"Forum Neighbourhood Mall"));
+        selectedLocationAddressMapper.put("Forum Neighbourhood Mall", "No.62, Whitefield Main Rd, Prestige Ozone, Whitefield, Bengaluru, Karnataka 560066");
+        screenLocationTitles.add(new MultiSelectModel(4,"Gold's Gym Whitefield"));
+        selectedLocationAddressMapper.put("Gold's Gym Whitefield","48, 1st Floor, Regent Prime, Whitefield Main Road, Bengaluru, Karnataka 560066");
     }
 }
