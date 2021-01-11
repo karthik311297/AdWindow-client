@@ -59,11 +59,13 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
     HashMap<String,String> selectedLocationAddressMapper;
     ArrayList<MultiSelectModel> screenLocationTitles;
     ArrayList<String> locationsToUploadAd;
+    ArrayList<Integer> alreadySelectedInLocationPicker;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ad_map);
         cityIndex=new HashMap<>();
+        alreadySelectedInLocationPicker = new ArrayList<>();
         getCitiesInDropDown();
         getLocationPermission();
         ImageButton currentLocationButton = findViewById(R.id.myLoc);
@@ -107,6 +109,7 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
                             .titleSize(25)
                             .positiveText("Ok")
                             .negativeText("Cancel")
+                            .preSelectIDsList(alreadySelectedInLocationPicker)
                             .multiSelectList(screenLocationTitles)
                             .onSubmit(new MultiSelectDialog.SubmitCallbackListener() {
                                 @Override
@@ -114,6 +117,9 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
                                     mMap.clear();
                                     addMapMarkerForScreenLocationsInCity(selectedNames);
                                     locationsToUploadAd = selectedNames;
+                                    if(selectedIds!=null) {
+                                        alreadySelectedInLocationPicker = selectedIds;
+                                    }
                                 }
                                 @Override
                                 public void onCancel() {
