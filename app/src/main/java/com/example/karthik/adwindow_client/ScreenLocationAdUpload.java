@@ -36,15 +36,14 @@ public class ScreenLocationAdUpload extends AppCompatActivity {
         selectAllLocs.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(!screenTitleAdapter.areAllChecked())
-                {
-                    screenTitleAdapter.checkAllLocations();
-                    screenTitleAdapter.notifyDataSetChanged();
-                }
-                else
-                {
-                    screenTitleAdapter.uncheckAllLocations();
-                    screenTitleAdapter.notifyDataSetChanged();
+                if(screenTitleAdapter!=null) {
+                    if (!screenTitleAdapter.areAllChecked()) {
+                        screenTitleAdapter.checkAllLocations();
+                        screenTitleAdapter.notifyDataSetChanged();
+                    } else {
+                        screenTitleAdapter.uncheckAllLocations();
+                        screenTitleAdapter.notifyDataSetChanged();
+                    }
                 }
             }
         });

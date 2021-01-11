@@ -7,6 +7,7 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -180,6 +181,14 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
             getDeviceLocation();
             mMap.setMyLocationEnabled(true);
             mMap.getUiSettings().setMyLocationButtonEnabled(false);
+            mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+                @Override
+                public boolean onMarkerClick(Marker marker) {
+                    Intent intent = new Intent(AdMap.this, ScreenInformation.class);
+                    startActivity(intent);
+                    return false;
+                }
+            });
         }
     }
 
@@ -270,8 +279,32 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
         }
     }
 
-    public void addMapMarkerForScreenLocationsInCity(List<String> screenLocationTitles)
+    public void addMapMarkerForScreenLocationsInCity(final ArrayList<String> selectedNames)
     {
+        final Handler handler = new Handler();
+        final List<MarkerOptions> locationToAddMarker = new ArrayList<>();
+        final Runnable uiRunnable = new Runnable() {
+            @Override
+            public void run() {
+                for(MarkerOptions markerOptions : locationToAddMarker)
+                {
+                    mMap.addMarker(markerOptions);
+                }
+            }
+        };
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                locationToAddMarker.addAll(collectMapMarkerForScreenLocationsInCity(selectedNames));
+                handler.post(uiRunnable);
+            }
+        });
+        thread.start();
+    }
+
+    public List<MarkerOptions> collectMapMarkerForScreenLocationsInCity(List<String> screenLocationTitles)
+    {
+        List<MarkerOptions> locationsToAddMarker = new ArrayList<>();
         Geocoder geocoder = new Geocoder(AdMap.this, Locale.getDefault());
         for(String screenTitle:screenLocationTitles)
         {
@@ -279,20 +312,12 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
                 List<Address> addressList = geocoder.getFromLocationName(selectedLocationAddressMapper.get(screenTitle),1);
                 Address address =  addressList.get(0);
                 LatLng addressLatLng = new LatLng(address.getLatitude(),address.getLongitude());
-                mMap.addMarker(new MarkerOptions().position(addressLatLng));
+                locationsToAddMarker.add(new MarkerOptions().position(addressLatLng));
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-            @Override
-            public boolean onMarkerClick(Marker marker) {
-                Intent intent = new Intent(AdMap.this, ScreenInformation.class);
-                startActivity(intent);
-                return false;
-            }
-        });
-
+        return locationsToAddMarker;
     }
 
     public void populateScreensDialog()
