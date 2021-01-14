@@ -1,4 +1,4 @@
-package com.example.karthik.adwindow_client;
+package com.example.adwindow.adwindow_client;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -13,9 +13,8 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
-import com.example.karthik.adwindow_client.adapter.ScreenTitleAdapter;
+import com.example.adwindow.adwindow_client.adapter.ScreenTitleAdapter;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class ScreenLocationAdUpload extends AppCompatActivity {

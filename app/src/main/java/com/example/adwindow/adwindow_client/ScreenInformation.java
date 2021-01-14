@@ -1,4 +1,4 @@
-package com.example.karthik.adwindow_client;
+package com.example.adwindow.adwindow_client;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager.widget.ViewPager;
@@ -7,7 +7,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.Window;
 
-import com.example.karthik.adwindow_client.adapter.ScreenInfoPagerAdapter;
+import com.example.adwindow.adwindow_client.adapter.ScreenInfoPagerAdapter;
 import com.google.android.material.tabs.TabLayout;
 
 public class ScreenInformation extends AppCompatActivity implements ScreenRate.OnFragmentInteractionListener,ScreenAddress.OnFragmentInteractionListener,ScreenFootfall.OnFragmentInteractionListener{

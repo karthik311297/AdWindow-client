@@ -1,4 +1,4 @@
-package com.example.karthik.adwindow_client;
+package com.example.adwindow.adwindow_client;
 
 import org.junit.Test;
 

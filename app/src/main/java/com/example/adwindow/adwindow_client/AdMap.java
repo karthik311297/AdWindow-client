@@ -1,4 +1,4 @@
-package com.example.karthik.adwindow_client;
+package com.example.adwindow.adwindow_client;
 
 import android.Manifest;
 import android.content.Intent;
@@ -64,6 +64,7 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ad_map);
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         cityIndex=new HashMap<>();
         alreadySelectedInLocationPicker = new ArrayList<>();
         getCitiesInDropDown();
@@ -200,7 +201,7 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
 
     private void getDeviceLocation()
     {
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+
 
         if(locationPermissionsGranted)
         {
@@ -212,7 +213,9 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
                     {
                         Location currentLocation = (Location) task.getResult();
                         currentDeviceCityLocation = currentLocation;
-                        getCityFromLocation(currentLocation.getLatitude(), currentLocation.getLongitude());
+                        if(currentDeviceCityLocation!=null) {
+                            getCityFromLocation(currentLocation.getLatitude(), currentLocation.getLongitude());
+                        }
                     }
                 }
             });

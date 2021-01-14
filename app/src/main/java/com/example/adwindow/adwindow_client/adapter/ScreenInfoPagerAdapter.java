@@ -1,8 +1,8 @@
-package com.example.karthik.adwindow_client.adapter;
+package com.example.adwindow.adwindow_client.adapter;
 
-import com.example.karthik.adwindow_client.ScreenAddress;
-import com.example.karthik.adwindow_client.ScreenFootfall;
-import com.example.karthik.adwindow_client.ScreenRate;
+import com.example.adwindow.adwindow_client.ScreenAddress;
+import com.example.adwindow.adwindow_client.ScreenFootfall;
+import com.example.adwindow.adwindow_client.ScreenRate;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;

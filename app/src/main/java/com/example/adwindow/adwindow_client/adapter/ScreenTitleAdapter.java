@@ -1,4 +1,4 @@
-package com.example.karthik.adwindow_client.adapter;
+package com.example.adwindow.adwindow_client.adapter;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -7,7 +7,7 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.TextView;
 
-import com.example.karthik.adwindow_client.R;
+import com.example.adwindow.adwindow_client.R;
 
 import java.util.ArrayList;
 import java.util.HashMap;

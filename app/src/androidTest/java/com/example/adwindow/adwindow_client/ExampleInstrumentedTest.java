@@ -1,4 +1,4 @@
-package com.example.karthik.adwindow_client;
+package com.example.adwindow.adwindow_client;
 
 import android.content.Context;
 
@@ -22,6 +22,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
 
-        assertEquals("com.example.karthik.adwindow_client", appContext.getPackageName());
+        assertEquals("com.example.adwindow.adwindow_client", appContext.getPackageName());
     }
 }

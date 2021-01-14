@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.karthik.adwindow_client">
+    package="com.example.adwindow.adwindow_client">
     <!--
          The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
          Google Maps Android API v2, but you must specify either coarse or fine
@@ -18,10 +18,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".ScreenInformation"
+        <activity android:name="com.example.adwindow.adwindow_client.ScreenInformation"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light.Dialog.Alert"/>
-        <activity android:name=".ScreenLocationAdUpload"
+        <activity android:name="com.example.adwindow.adwindow_client.ScreenLocationAdUpload"
             android:screenOrientation="portrait"/>
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
@@ -39,14 +39,14 @@
             android:value="@string/google_maps_key" />
 
         <activity
-            android:name=".AdMap"
+            android:name="com.example.adwindow.adwindow_client.AdMap"
             android:label="@string/title_activity_ad_map"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".UserDashboard"
+            android:name="com.example.adwindow.adwindow_client.UserDashboard"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".LoginActivity"
+            android:name="com.example.adwindow.adwindow_client.LoginActivity"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -54,7 +54,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".MainActivity" />
+        <activity android:name="com.example.adwindow.adwindow_client.MainActivity" />
     </application>
 
 </manifest>
