@@ -29,6 +29,11 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -44,6 +49,7 @@ import androidx.core.content.ContextCompat;
 
 public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
 
+    DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
     private GoogleMap mMap;
     private static final String FINE_LOCATION = Manifest.permission.ACCESS_FINE_LOCATION;
     private static final String COARSE_LOCATION = Manifest.permission.ACCESS_COARSE_LOCATION;
@@ -60,18 +66,19 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
     ArrayList<MultiSelectModel> screenLocationTitles;
     ArrayList<String> locationsToUploadAd;
     ArrayList<Integer> alreadySelectedInLocationPicker;
+    List<com.example.adwindow.adwindow_client.model.Location> allCities;
+    List<String> cityNames;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ad_map);
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-        cityIndex=new HashMap<>();
         alreadySelectedInLocationPicker = new ArrayList<>();
-        getCitiesInDropDown();
-        getLocationPermission();
-        ImageButton currentLocationButton = findViewById(R.id.myLoc);
         ImageButton uploadAdButton = findViewById(R.id.uploadAd);
         Button screensDialogOpener =  findViewById(R.id.screensDialogOpener);
+        Spinner citySpinner = findViewById(R.id.scity);
+        getLocationPermission();
         uploadAdButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -84,18 +91,6 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
                         intent.putStringArrayListExtra("LOCS",locationsToUploadAd);
                     }
                     startActivity(intent);
-                }
-            }
-        });
-        currentLocationButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(currentCityIndex!=null)
-                {
-                    moveToMyLocation = true;
-                    moveCamera(new LatLng(currentDeviceCityLocation.getLatitude(),currentDeviceCityLocation.getLongitude()),DEFAULT_ZOOM);
-                    Spinner citySpinner = findViewById(R.id.scity);
-                    citySpinner.setSelection(currentCityIndex);
                 }
             }
         });
@@ -131,7 +126,6 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
                 }
             }
         });
-
     }
 
     private void initMap()
@@ -201,8 +195,6 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
 
     private void getDeviceLocation()
     {
-
-
         if(locationPermissionsGranted)
         {
             Task locationFetcher = fusedLocationProviderClient.getLastLocation();
@@ -213,9 +205,7 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
                     {
                         Location currentLocation = (Location) task.getResult();
                         currentDeviceCityLocation = currentLocation;
-                        if(currentDeviceCityLocation!=null) {
-                            getCityFromLocation(currentLocation.getLatitude(), currentLocation.getLongitude());
-                        }
+                        getCitiesInDropDown();
                     }
                 }
             });
@@ -229,33 +219,34 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
 
     public void getCitiesInDropDown()
     {
-        Spinner citySpinner = findViewById(R.id.scity);
-        final List<String> cities = Arrays.asList("Select City","Mysuru","Bengaluru","Mandya");
-        cityIndex.put("Mysuru",1);
-        cityIndex.put("Bengaluru",2);
-        cityIndex.put("Mandya",3);
-        ArrayAdapter<String> citiesAdapter = new ArrayAdapter<String>(this,android.R.layout.simple_spinner_item,cities);
-        citiesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        citySpinner.setAdapter(citiesAdapter);
-        citySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        allCities = new ArrayList<>();
+        cityNames = new ArrayList<>();
+        cityIndex=new HashMap<>();
+        cityNames.add("Select City");
+        final DatabaseReference citiesReference = databaseReference.child("Cities");
+        citiesReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                if(moveToMyLocation)
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for(DataSnapshot dataSnapshot : snapshot.getChildren())
                 {
-                    citySelectedInDropdown = cities.get(i);
-                    Toast.makeText(AdMap.this, cities.get(i), Toast.LENGTH_SHORT).show();
-                    moveToMyLocation = false;
+                    com.example.adwindow.adwindow_client.model.Location location = dataSnapshot.getValue(com.example.adwindow.adwindow_client.model.Location.class);
+                    allCities.add(location);
+                    cityNames.add(location.getLocationName());
                 }
-                else if(i>0 && currentCityIndex!=null)
+                for(int i =1; i<cityNames.size();i++)
                 {
-                    moveCameraToSelectedCity(cities.get(i));
-                    citySelectedInDropdown = cities.get(i);
-                    Toast.makeText(AdMap.this, cities.get(i), Toast.LENGTH_SHORT).show();
+                    cityIndex.put(cityNames.get(i),i);
                 }
-             }
-
+                Spinner citySpinner = findViewById(R.id.scity);
+                ArrayAdapter<String> citiesAdapter = new ArrayAdapter<String>(AdMap.this,android.R.layout.simple_spinner_item,cityNames);
+                citiesAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                citySpinner.setAdapter(citiesAdapter);
+                if(currentDeviceCityLocation!=null) {
+                    getCityFromLocation(currentDeviceCityLocation.getLatitude(), currentDeviceCityLocation.getLongitude());
+                }
+            }
             @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
+            public void onCancelled(@NonNull DatabaseError error) {
 
             }
         });
@@ -281,8 +272,41 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
             List<Address> addressList = geocoder.getFromLocation(latitude, longitude,1);
             String cityName = addressList.get(0).getLocality();
             Spinner citySpinner = findViewById(R.id.scity);
+            citySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                    if (moveToMyLocation) {
+                        citySelectedInDropdown = cityNames.get(i);
+                        Toast.makeText(AdMap.this, cityNames.get(i), Toast.LENGTH_SHORT).show();
+                        moveToMyLocation = false;
+                    } else if (i > 0) {
+                        moveCameraToSelectedCity(cityNames.get(i));
+                        citySelectedInDropdown = cityNames.get(i);
+                        Toast.makeText(AdMap.this, cityNames.get(i), Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> adapterView) {
+
+                }
+            });
             currentCityIndex = cityIndex.get(cityName);
-            citySpinner.setSelection(cityIndex.get(cityName));
+            if(currentCityIndex!=null) {
+                citySpinner.setSelection(currentCityIndex);
+                ImageButton currentLocationButton = findViewById(R.id.myLoc);
+                currentLocationButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        moveToMyLocation = true;
+                        moveCamera(new LatLng(currentDeviceCityLocation.getLatitude(),currentDeviceCityLocation.getLongitude()),DEFAULT_ZOOM);
+                        if(currentCityIndex!=null) {
+                            Spinner citySpinner = findViewById(R.id.scity);
+                            citySpinner.setSelection(currentCityIndex);
+                        }
+                    }
+                });
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
