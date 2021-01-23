@@ -9,6 +9,8 @@
         android:gravity="center"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="$10 FOR 150 SLOTS"/>
+        android:text="$10 FOR 150 SLOTS"
+        android:id="@+id/sfrate"
+        />
 
 </FrameLayout>

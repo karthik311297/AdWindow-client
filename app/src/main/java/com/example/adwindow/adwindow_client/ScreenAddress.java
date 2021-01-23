@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 
 /**
@@ -66,7 +67,11 @@ public class ScreenAddress extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_screen_address, container, false);
+        View view = inflater.inflate(R.layout.fragment_screen_address, container, false);
+        String address = getArguments().getString("ADDR");
+        TextView addrView = view.findViewById(R.id.sfaddr);
+        addrView.setText(address);
+        return view;
     }
 
     // TODO: Rename method, update argument and hook method into UI event

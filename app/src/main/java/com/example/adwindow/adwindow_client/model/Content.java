@@ -12,11 +12,11 @@ public class Content {
     public Content() {
     }
 
-    public Content(String contentId, String contentURL, String uploadedByUser) {
+    public Content(String contentId, String contentURL, String uploadedByUser, List<String> screensUploadedIn) {
         this.contentId = contentId;
         this.contentURL = contentURL;
         this.uploadedByUser = uploadedByUser;
-        this.screensUploadedIn = new ArrayList<>();
+        this.screensUploadedIn = screensUploadedIn;
     }
 
     public String getContentId() {

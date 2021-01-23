@@ -18,6 +18,7 @@ import android.widget.Toast;
 
 import com.abdeveloper.library.MultiSelectDialog;
 import com.abdeveloper.library.MultiSelectModel;
+import com.example.adwindow.adwindow_client.Parcels.ScreenParcelable;
 import com.example.adwindow.adwindow_client.model.Screen;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -66,7 +67,6 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
     private Location currentDeviceCityLocation;
     private com.example.adwindow.adwindow_client.model.Location dropDownSelectedCity;
     private boolean moveToMyLocation = false;
-    HashMap<String,String> selectedLocationAddressMapper;
     ArrayList<MultiSelectModel> screenLocationTitles;
     ArrayList<String> locationsToUploadAd;
     ArrayList<Integer> alreadySelectedInLocationPicker;
@@ -191,7 +191,11 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
             mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
                 @Override
                 public boolean onMarkerClick(Marker marker) {
+                    Screen screenToView = allScreensInCurrentSelectedCity.get(marker.getTitle());
+                    ScreenParcelable screenParcelable = new ScreenParcelable(screenToView.getLocationName(), screenToView.getScreenLocationTitle(),
+                            screenToView.getScreenAddress(), screenToView.getScreenPlaceImageUrl(), screenToView.getPricing(), screenToView.getFootfall(), screenToView.getNumScreens());
                     Intent intent = new Intent(AdMap.this, ScreenInformation.class);
+                    intent.putExtra("SDET", screenParcelable);
                     startActivity(intent);
                     return false;
                 }
@@ -369,7 +373,7 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
                         List<Address> addressList = geocoder.getFromLocationName(allScreensInCurrentSelectedCity.get(sc).getScreenAddress(), 1);
                         Address address = addressList.get(0);
                         LatLng addressLatLng = new LatLng(address.getLatitude(), address.getLongitude());
-                        locationToAddMarker.add(new MarkerOptions().position(addressLatLng));
+                        locationToAddMarker.add(new MarkerOptions().position(addressLatLng).title(sc));
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

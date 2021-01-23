@@ -9,6 +9,8 @@
         android:gravity="center"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="20 Persons Per Hour" />
+        android:text="20 Persons Per Hour"
+        android:id="@+id/sffoot"
+        />
 
 </FrameLayout>
