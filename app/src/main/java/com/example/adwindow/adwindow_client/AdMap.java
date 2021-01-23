@@ -18,6 +18,7 @@ import android.widget.Toast;
 
 import com.abdeveloper.library.MultiSelectDialog;
 import com.abdeveloper.library.MultiSelectModel;
+import com.example.adwindow.adwindow_client.model.Screen;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -41,6 +42,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -61,6 +64,7 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
     private Integer currentCityIndex;
     private String citySelectedInDropdown;
     private Location currentDeviceCityLocation;
+    private com.example.adwindow.adwindow_client.model.Location dropDownSelectedCity;
     private boolean moveToMyLocation = false;
     HashMap<String,String> selectedLocationAddressMapper;
     ArrayList<MultiSelectModel> screenLocationTitles;
@@ -68,13 +72,13 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
     ArrayList<Integer> alreadySelectedInLocationPicker;
     List<com.example.adwindow.adwindow_client.model.Location> allCities;
     List<String> cityNames;
+    Map<String, Screen> allScreensInCurrentSelectedCity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ad_map);
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
-        alreadySelectedInLocationPicker = new ArrayList<>();
         ImageButton uploadAdButton = findViewById(R.id.uploadAd);
         Button screensDialogOpener =  findViewById(R.id.screensDialogOpener);
         Spinner citySpinner = findViewById(R.id.scity);
@@ -97,32 +101,34 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
         screensDialogOpener.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(citySelectedInDropdown!=null)
-                {
+                if(citySelectedInDropdown!=null) {
                     populateScreensDialog();
-                    MultiSelectDialog multiSelectDialog = new MultiSelectDialog()
-                            .title("Choose Screens")
-                            .titleSize(25)
-                            .positiveText("Ok")
-                            .negativeText("Cancel")
-                            .preSelectIDsList(alreadySelectedInLocationPicker)
-                            .multiSelectList(screenLocationTitles)
-                            .onSubmit(new MultiSelectDialog.SubmitCallbackListener() {
-                                @Override
-                                public void onSelected(ArrayList<Integer> selectedIds, ArrayList<String> selectedNames, String s) {
-                                    mMap.clear();
-                                    addMapMarkerForScreenLocationsInCity(selectedNames);
-                                    locationsToUploadAd = selectedNames;
-                                    if(selectedIds!=null) {
-                                        alreadySelectedInLocationPicker = selectedIds;
+                    if (allScreensInCurrentSelectedCity != null && allScreensInCurrentSelectedCity.size() == screenLocationTitles.size()) {
+                        MultiSelectDialog multiSelectDialog = new MultiSelectDialog()
+                                .title("Choose Screens")
+                                .titleSize(25)
+                                .positiveText("Ok")
+                                .negativeText("Cancel")
+                                .preSelectIDsList(alreadySelectedInLocationPicker)
+                                .multiSelectList(screenLocationTitles)
+                                .onSubmit(new MultiSelectDialog.SubmitCallbackListener() {
+                                    @Override
+                                    public void onSelected(ArrayList<Integer> selectedIds, ArrayList<String> selectedNames, String s) {
+                                        mMap.clear();
+                                        addMapMarkerToScreenLocations(selectedNames);
+                                        locationsToUploadAd = selectedNames;
+                                        if (selectedIds != null) {
+                                            alreadySelectedInLocationPicker = selectedIds;
+                                        }
                                     }
-                                }
-                                @Override
-                                public void onCancel() {
-                                    Toast.makeText(AdMap.this,"Cancelled",Toast.LENGTH_SHORT).show();
-                                }
-                            });
-                    multiSelectDialog.show(getSupportFragmentManager(),"multiSelectDialog");
+
+                                    @Override
+                                    public void onCancel() {
+                                        Toast.makeText(AdMap.this, "Cancelled", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                        multiSelectDialog.show(getSupportFragmentManager(), "multiSelectDialog");
+                    }
                 }
             }
         });
@@ -277,11 +283,19 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
                 public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                     if (moveToMyLocation) {
                         citySelectedInDropdown = cityNames.get(i);
+                        alreadySelectedInLocationPicker = new ArrayList<>();
+                        collectScreenLocationsInCity(citySelectedInDropdown);
+                        locationsToUploadAd = null;
+                        dropDownSelectedCity = allCities.get(i-1);
                         Toast.makeText(AdMap.this, cityNames.get(i), Toast.LENGTH_SHORT).show();
                         moveToMyLocation = false;
                     } else if (i > 0) {
                         moveCameraToSelectedCity(cityNames.get(i));
                         citySelectedInDropdown = cityNames.get(i);
+                        alreadySelectedInLocationPicker = new ArrayList<>();
+                        collectScreenLocationsInCity(citySelectedInDropdown);
+                        locationsToUploadAd = null;
+                        dropDownSelectedCity = allCities.get(i-1);
                         Toast.makeText(AdMap.this, cityNames.get(i), Toast.LENGTH_SHORT).show();
                     }
                 }
@@ -312,15 +326,36 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
         }
     }
 
-    public void addMapMarkerForScreenLocationsInCity(final ArrayList<String> selectedNames)
+    public void collectScreenLocationsInCity(String city)
     {
+        allScreensInCurrentSelectedCity = new HashMap<>();
+            DatabaseReference singleScreenRef = databaseReference.child("Screens").child(city);
+            singleScreenRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                    for(DataSnapshot ds: snapshot.getChildren())
+                    {
+                        Screen screen = ds.getValue(Screen.class);
+                        allScreensInCurrentSelectedCity.put(screen.getScreenLocationTitle(), screen);
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+
+                }
+            });
+    }
+
+    public void addMapMarkerToScreenLocations(final List<String> screensSelected) {
         final Handler handler = new Handler();
+        final Geocoder geocoder = new Geocoder(AdMap.this, Locale.getDefault());
         final List<MarkerOptions> locationToAddMarker = new ArrayList<>();
         final Runnable uiRunnable = new Runnable() {
             @Override
             public void run() {
-                for(MarkerOptions markerOptions : locationToAddMarker)
-                {
+                for (MarkerOptions markerOptions : locationToAddMarker) {
                     mMap.addMarker(markerOptions);
                 }
             }
@@ -328,42 +363,29 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                locationToAddMarker.addAll(collectMapMarkerForScreenLocationsInCity(selectedNames));
+                for(String sc : screensSelected)
+                {
+                    try {
+                        List<Address> addressList = geocoder.getFromLocationName(allScreensInCurrentSelectedCity.get(sc).getScreenAddress(), 1);
+                        Address address = addressList.get(0);
+                        LatLng addressLatLng = new LatLng(address.getLatitude(), address.getLongitude());
+                        locationToAddMarker.add(new MarkerOptions().position(addressLatLng));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
                 handler.post(uiRunnable);
             }
         });
         thread.start();
     }
-
-    public List<MarkerOptions> collectMapMarkerForScreenLocationsInCity(List<String> screenLocationTitles)
-    {
-        List<MarkerOptions> locationsToAddMarker = new ArrayList<>();
-        Geocoder geocoder = new Geocoder(AdMap.this, Locale.getDefault());
-        for(String screenTitle:screenLocationTitles)
-        {
-            try {
-                List<Address> addressList = geocoder.getFromLocationName(selectedLocationAddressMapper.get(screenTitle),1);
-                Address address =  addressList.get(0);
-                LatLng addressLatLng = new LatLng(address.getLatitude(),address.getLongitude());
-                locationsToAddMarker.add(new MarkerOptions().position(addressLatLng));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        return locationsToAddMarker;
-    }
-
     public void populateScreensDialog()
     {
         screenLocationTitles = new ArrayList<>();
-        selectedLocationAddressMapper = new HashMap<>();
-        screenLocationTitles.add(new MultiSelectModel(1,"MSRIT College"));
-        selectedLocationAddressMapper.put("MSRIT College", "MSRIT Post, M S Ramaiah Nagar,MSR Nagar, Bengaluru, Karnataka 560054");
-        screenLocationTitles.add(new MultiSelectModel(2,"RV College"));
-        selectedLocationAddressMapper.put("RV College", "Mysore Rd, RV Vidyaniketan, Post, Bengaluru, Karnataka 560059");
-        screenLocationTitles.add(new MultiSelectModel(3,"Forum Neighbourhood Mall"));
-        selectedLocationAddressMapper.put("Forum Neighbourhood Mall", "No.62, Whitefield Main Rd, Prestige Ozone, Whitefield, Bengaluru, Karnataka 560066");
-        screenLocationTitles.add(new MultiSelectModel(4,"Gold's Gym Whitefield"));
-        selectedLocationAddressMapper.put("Gold's Gym Whitefield","48, 1st Floor, Regent Prime, Whitefield Main Road, Bengaluru, Karnataka 560066");
+        ArrayList<String> screenLocations = new ArrayList(dropDownSelectedCity.getScreenLocationTitles().values());
+        for(int i=0;i<screenLocations.size();i++)
+        {
+            screenLocationTitles.add(new MultiSelectModel(i+1, screenLocations.get(i)));
+        }
     }
 }
