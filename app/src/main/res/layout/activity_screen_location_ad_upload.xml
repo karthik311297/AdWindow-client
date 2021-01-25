@@ -35,9 +35,31 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_margin="5dp"
-            android:layout_weight="12"
+            android:layout_weight="11"
             android:id="@+id/screen_loc_list"
             />
+        <LinearLayout
+            android:layout_width="200dp"
+            android:layout_height="0dp"
+            android:orientation="horizontal"
+            android:layout_weight="1"
+            android:layout_margin="8dp"
+            android:layout_gravity="center_horizontal"
+            >
+            <ImageView
+                android:layout_width="50dp"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_folder_open_black_24dp"
+                android:id="@+id/fileChooseContent"
+                />
+            <EditText
+                android:layout_width="150dp"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:hint="Ad Name?"
+                android:id="@+id/uploadContentName"
+                />
+        </LinearLayout>
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"

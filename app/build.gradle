@@ -43,4 +43,5 @@ dependencies {
     implementation 'com.github.abumoallim:Android-Multi-Select-Dialog:v1.9'
     implementation 'com.github.bumptech.glide:glide:4.11.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.11.0'
+    implementation 'com.google.firebase:firebase-auth:20.0.2'
 }

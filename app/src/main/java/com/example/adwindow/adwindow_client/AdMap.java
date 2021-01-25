@@ -333,8 +333,8 @@ public class AdMap extends AppCompatActivity implements OnMapReadyCallback {
     public void collectScreenLocationsInCity(String city)
     {
         allScreensInCurrentSelectedCity = new HashMap<>();
-            DatabaseReference singleScreenRef = databaseReference.child("Screens").child(city);
-            singleScreenRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            DatabaseReference screensRef = databaseReference.child("Screens").child(city);
+            screensRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
 
