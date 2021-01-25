@@ -24,6 +24,7 @@ import com.example.adwindow.adwindow_client.adapter.ScreenTitleAdapter;
 import com.example.adwindow.adwindow_client.model.Content;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
@@ -37,6 +38,7 @@ import java.util.Map;
 
 public class ScreenLocationAdUpload extends AppCompatActivity {
 
+    FirebaseAuth firebaseAuth;
     RecyclerView screenLocations;
     List<String> locationTitles;
     String city;
@@ -50,6 +52,7 @@ public class ScreenLocationAdUpload extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_screen_location_ad_upload);
         locationTitles = getIntent().getStringArrayListExtra("LOCS");
+        firebaseAuth = FirebaseAuth.getInstance();
         city = getIntent().getStringExtra("CITY");
         populateRecyclerView();
         ImageButton selectAllLocs = findViewById(R.id.selectAllLocs);
@@ -135,10 +138,11 @@ public class ScreenLocationAdUpload extends AppCompatActivity {
         }
         if(filePath!=null)
         {
+            final String userUid = firebaseAuth.getCurrentUser().getUid();
             final ProgressDialog progressDialog = new ProgressDialog(ScreenLocationAdUpload.this);
             progressDialog.setTitle("Uploading Your Ad Please Wait");
             progressDialog.show();
-            final StorageReference advertisementReference = storageReference.child("Advertisements"+"/user/"+adName+"."+getFileExtension(filePath));
+            final StorageReference advertisementReference = storageReference.child("Advertisements/"+userUid+"/"+adName+"."+getFileExtension(filePath));
             advertisementReference.putFile(filePath).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                 @Override
                 public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
@@ -147,13 +151,13 @@ public class ScreenLocationAdUpload extends AppCompatActivity {
                         @Override
                         public void onSuccess(Uri uri) {
                             Map<String, Object> multiUpdates = new HashMap<>();
-                            String contentId = databaseReference.child("Advertisements").child("user").push().getKey();
+                            String contentId = databaseReference.child("Advertisements").child(userUid).push().getKey();
                             Map<String, Boolean> adStatus = new HashMap<>();
                             for(String scr : screensToUploadIn)
                             {
                                 adStatus.put(scr, false);
                             }
-                            multiUpdates.put("Advertisements/user/"+contentId, new Content(contentId,uri.toString(),"user",adStatus,adName));
+                            multiUpdates.put("Advertisements/"+userUid+"/"+contentId, new Content(contentId,uri.toString(),userUid,adStatus,adName));
                             for(String title : screensToUploadIn)
                             {
                                 multiUpdates.put("Screens/"+city+"/"+title+"/advertisementsStatus/"+contentId, false);

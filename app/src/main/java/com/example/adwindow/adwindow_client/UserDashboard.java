@@ -13,17 +13,24 @@ import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.auth.FirebaseAuth;
 
 public class UserDashboard extends AppCompatActivity implements PaymentHistory.OnFragmentInteractionListener,ContentOngoing.OnFragmentInteractionListener {
 
+    private FirebaseAuth firebaseAuth;
+    private String currentUser;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_dashboard);
-
+        firebaseAuth = FirebaseAuth.getInstance();
+        currentUser = firebaseAuth.getCurrentUser().getUid();
         ImageButton generalMenu = findViewById(R.id.generalMenu);
+        NavigationView navigationView = findViewById(R.id.navigation);
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
         bottomNavigationView.setSelectedItemId(R.id.mContent);
         bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -60,6 +67,20 @@ public class UserDashboard extends AppCompatActivity implements PaymentHistory.O
                 drawerLayout.openDrawer(GravityCompat.START);
             }
         });
+
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                int itemId = item.getItemId();
+                if(itemId == R.id.logout)
+                {
+                    firebaseAuth.signOut();
+                    finish();
+                    return true;
+                }
+                return false;
+            }
+        });
     }
 
     @Override
@@ -71,6 +92,11 @@ public class UserDashboard extends AppCompatActivity implements PaymentHistory.O
 
     @Override
     public void onFragmentInteraction(Uri uri) {
+
+    }
+
+    @Override
+    public void onBackPressed() {
 
     }
 }
