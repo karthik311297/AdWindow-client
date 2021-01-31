@@ -5,9 +5,9 @@
     android:layout_height="match_parent"
     tools:context=".ContentOngoing">
 
-    <TextView
-        android:gravity="center"
+    <androidx.recyclerview.widget.RecyclerView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="Your Ongoing Advertisments" />
+        android:id="@+id/contentList"
+        />
 </FrameLayout>

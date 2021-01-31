@@ -4,4 +4,6 @@
     <color name="colorPrimaryDark">#00574B</color>
     <color name="colorAccent">#D81B60</color>
     <color name="blendMenu">#FC4660</color>
+    <color name="custGreen">#6CF542</color>
+    <color name="custOrange">#F59207</color>
 </resources>

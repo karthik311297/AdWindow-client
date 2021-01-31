@@ -15,6 +15,7 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import com.example.adwindow.adwindow_client.model.Content;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
@@ -49,7 +50,7 @@ public class UserDashboard extends AppCompatActivity implements PaymentHistory.O
                 }
                 else
                 {
-                    Fragment fragment = new ContentOngoing();
+                    Fragment fragment = ContentOngoing.newInstance(currentUser);
                     FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
                     fragmentTransaction.replace(R.id.dashboardFrame, fragment);
                     fragmentTransaction.commit();
