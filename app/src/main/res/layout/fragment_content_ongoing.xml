@@ -4,7 +4,23 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ContentOngoing">
-
+    <ProgressBar
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_gravity="center"
+        android:id="@+id/pgbar"
+        android:visibility="visible"
+        />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:textSize="40dp"
+        android:text="Tap to start advertising"
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:visibility="gone"
+        android:id="@+id/emptyListText"
+        />
     <androidx.recyclerview.widget.RecyclerView
         android:layout_width="match_parent"
         android:layout_height="match_parent"

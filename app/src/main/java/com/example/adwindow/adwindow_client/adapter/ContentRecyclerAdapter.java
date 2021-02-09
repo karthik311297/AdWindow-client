@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.adwindow.adwindow_client.R;
@@ -30,10 +31,14 @@ public class ContentRecyclerAdapter extends FirebaseRecyclerAdapter <Content, Co
      * @param options
      */
     private Context context;
+    private ProgressBar progressBar;
+    private TextView emptyAdapterText;
 
-    public ContentRecyclerAdapter(Context context, @NonNull FirebaseRecyclerOptions<Content> options) {
+    public ContentRecyclerAdapter(Context context, @NonNull FirebaseRecyclerOptions<Content> options, ProgressBar progressBar, TextView emptyAdapterText) {
         super(options);
         this.context = context;
+        this.progressBar =  progressBar;
+        this.emptyAdapterText = emptyAdapterText;
     }
 
     @NonNull
@@ -74,5 +79,12 @@ public class ContentRecyclerAdapter extends FirebaseRecyclerAdapter <Content, Co
 
             imageView = itemView.findViewById(R.id.downloadButton);
         }
+    }
+
+    @Override
+    public void onDataChanged() {
+        super.onDataChanged();
+        progressBar.setVisibility(View.GONE);
+        emptyAdapterText.setVisibility(getItemCount() == 0 ? View.VISIBLE : View.GONE);
     }
 }

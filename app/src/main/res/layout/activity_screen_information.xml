@@ -7,15 +7,26 @@
         android:layout_height="match_parent"
         android:layout_margin="5dp"
         >
-        <ImageView
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="5"
-            android:padding="2dp"
-            android:id="@+id/locationImgView"
-            android:scaleType="centerCrop"
-            android:layout_gravity="center"
-            />
+            android:padding="2dp">
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/locationImgView"
+                android:scaleType="centerCrop"
+                android:layout_gravity="center"
+                />
+            <ProgressBar
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:id="@+id/progressBar"
+                android:visibility="visible"
+                android:layout_centerInParent="true"
+                />
+        </RelativeLayout>
         <TextView
             android:layout_width="match_parent"
             android:layout_height="0dp"

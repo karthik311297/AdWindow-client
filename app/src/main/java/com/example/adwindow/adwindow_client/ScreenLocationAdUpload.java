@@ -140,54 +140,75 @@ public class ScreenLocationAdUpload extends AppCompatActivity {
         {
             final String userUid = firebaseAuth.getCurrentUser().getUid();
             final ProgressDialog progressDialog = new ProgressDialog(ScreenLocationAdUpload.this);
-            progressDialog.setTitle("Uploading Your Ad Please Wait");
+            progressDialog.setTitle("Uploading Your Ad Please Wait..");
             progressDialog.show();
             final StorageReference advertisementReference = storageReference.child("Advertisements/"+userUid+"/"+adName+"."+getFileExtension(filePath));
-            advertisementReference.putFile(filePath).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            advertisementReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                 @Override
-                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                    progressDialog.setMessage("Completed 100%. Please Wait..");
-                    advertisementReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                public void onSuccess(Uri uri) {
+                    progressDialog.dismiss();
+                    Toast.makeText(ScreenLocationAdUpload.this, "You already have an Ad with that name, please change the Ad name", Toast.LENGTH_LONG).show();
+                }
+            })
+            .addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    advertisementReference.putFile(filePath).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                         @Override
-                        public void onSuccess(Uri uri) {
-                            Map<String, Object> multiUpdates = new HashMap<>();
-                            String contentId = databaseReference.child("Advertisements").child(userUid).push().getKey();
-                            Map<String, Boolean> adStatus = new HashMap<>();
-                            for(String scr : screensToUploadIn)
-                            {
-                                adStatus.put(scr, false);
-                            }
-                            multiUpdates.put("Advertisements/"+userUid+"/"+contentId, new Content(contentId,uri.toString(),userUid,adStatus,adName));
-                            for(String title : screensToUploadIn)
-                            {
-                                multiUpdates.put("Screens/"+city+"/"+title+"/advertisementsStatus/"+contentId, false);
-                            }
-
-                            databaseReference.updateChildren(multiUpdates).addOnSuccessListener(new OnSuccessListener<Void>() {
+                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                            progressDialog.setMessage("Completed 100%. Please Wait..");
+                            advertisementReference.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                                 @Override
-                                public void onSuccess(Void aVoid) {
-                                    progressDialog.dismiss();
-                                    Toast.makeText(ScreenLocationAdUpload.this,"Ad Uploaded",Toast.LENGTH_LONG).show();
+                                public void onSuccess(Uri uri) {
+                                    Map<String, Object> multiUpdates = new HashMap<>();
+                                    String contentId = databaseReference.child("Advertisements").child(userUid).push().getKey();
+                                    Map<String, Boolean> adStatus = new HashMap<>();
+                                    for(String scr : screensToUploadIn)
+                                    {
+                                        adStatus.put(scr, false);
+                                    }
+                                    multiUpdates.put("Advertisements/"+userUid+"/"+contentId, new Content(contentId,uri.toString(),userUid,adStatus,adName));
+                                    for(String title : screensToUploadIn)
+                                    {
+                                        multiUpdates.put("Screens/"+city+"/"+title+"/advertisementsStatus/"+contentId, false);
+                                    }
+
+                                    databaseReference.updateChildren(multiUpdates).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        @Override
+                                        public void onSuccess(Void aVoid) {
+                                            progressDialog.dismiss();
+                                            Toast.makeText(ScreenLocationAdUpload.this,"Ad Uploaded",Toast.LENGTH_LONG).show();
+                                        }
+                                    })
+                                    .addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            progressDialog.dismiss();
+                                            advertisementReference.delete();
+                                            Toast.makeText(ScreenLocationAdUpload.this,"Ad upload failed due to: "+e.getMessage(),Toast.LENGTH_LONG).show();
+                                        }
+                                    });
                                 }
                             });
                         }
-                    });
-                    }
                     })
-                    .addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            progressDialog.dismiss();
-                            Toast.makeText(ScreenLocationAdUpload.this,e.getMessage(),Toast.LENGTH_LONG).show();
-                        }
-                    })
-                    .addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
-                        @Override
-                        public void onProgress(@NonNull UploadTask.TaskSnapshot snapshot) {
-                            double progress = (100.0 * snapshot.getBytesTransferred()) / snapshot.getTotalByteCount();
-                            progressDialog.setMessage("Completed "+((int) progress) + "%...");
-                        }
-                    });
+                            .addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    progressDialog.dismiss();
+                                    Toast.makeText(ScreenLocationAdUpload.this,"Ad upload failed due to: "+e.getMessage(),Toast.LENGTH_LONG).show();
+                                }
+                            })
+                            .addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+                                @Override
+                                public void onProgress(@NonNull UploadTask.TaskSnapshot snapshot) {
+                                    double progress = (100.0 * snapshot.getBytesTransferred()) / snapshot.getTotalByteCount();
+                                    progressDialog.setMessage("Completed "+((int) progress) + "%...");
+                                }
+                            });
+                }
+            })
+            ;
         }
     }
 

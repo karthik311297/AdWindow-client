@@ -13,6 +13,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.example.adwindow.adwindow_client.adapter.ContentRecyclerAdapter;
 import com.example.adwindow.adwindow_client.model.Content;
@@ -133,7 +135,7 @@ public class ContentOngoing extends Fragment {
                 .setQuery(adReference, Content.class)
                 .build();
 
-        contentRecyclerAdapter = new ContentRecyclerAdapter(context, options);
+        contentRecyclerAdapter = new ContentRecyclerAdapter(context, options, (ProgressBar) view.findViewById(R.id.pgbar), (TextView) view.findViewById(R.id.emptyListText));
         recyclerView.setAdapter(contentRecyclerAdapter);
     }
 
